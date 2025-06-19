@@ -17,6 +17,15 @@ function App() {
     smsNotificationsEnabled: false,
     zapierEnabled: false
   });
+  const [icalSettings, setIcalSettings] = useState({
+    gardensAirbnbUrl: '',
+    gardensRiparideUrl: '',
+    watersAirbnbUrl: '',
+    watersRiparideUrl: '',
+    icalEnabled: false,
+    lastSync: null,
+    autoSyncInterval: '30'
+  });
 
   useEffect(() => {
     const savedBookings = JSON.parse(localStorage.getItem('jackyWinterBookings') || 'null');
@@ -25,51 +34,6 @@ function App() {
       setBookings(savedBookings);
     } else {
       const initialBookings = [
-        {
-          id: '1',
-          firstName: '',
-          lastName: '',
-          property: 'Jacky Winter Gardens',
-          checkIn: '2025-06-20',
-          checkOut: '2025-06-22',
-          phone: '5626',
-          email: '',
-          source: 'airbnb',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '2',
-          firstName: 'John',
-          lastName: 'Smith',
-          property: 'Jacky Winter Waters',
-          checkIn: '2025-06-15',
-          checkOut: '2025-06-18',
-          phone: '555-0123',
-          email: 'john.smith@email.com',
-          source: 'booking.com',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '3',
-          firstName: 'Sarah',
-          lastName: 'Johnson',
-          property: 'Jacky Winter Gardens',
-          checkIn: '2025-06-25',
-          checkOut: '2025-06-28',
-          phone: '555-0456',
-          email: 'sarah.j@email.com',
-          source: 'direct',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
         {
           id: '4',
           firstName: 'Mae',
@@ -80,126 +44,6 @@ function App() {
           phone: '',
           email: 'mae@example.com',
           source: 'riparide',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '5',
-          firstName: 'Michael',
-          lastName: 'Brown',
-          property: 'Jacky Winter Waters',
-          checkIn: '2025-07-05',
-          checkOut: '2025-07-08',
-          phone: '555-0789',
-          email: 'mike.brown@email.com',
-          source: 'airbnb',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '6',
-          firstName: 'Emily',
-          lastName: 'Davis',
-          property: 'Jacky Winter Gardens',
-          checkIn: '2025-07-10',
-          checkOut: '2025-07-13',
-          phone: '555-0321',
-          email: 'emily.davis@email.com',
-          source: 'booking.com',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '7',
-          firstName: 'David',
-          lastName: 'Wilson',
-          property: 'Jacky Winter Waters',
-          checkIn: '2025-07-15',
-          checkOut: '2025-07-18',
-          phone: '555-0654',
-          email: 'david.wilson@email.com',
-          source: 'direct',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '8',
-          firstName: 'Lisa',
-          lastName: 'Anderson',
-          property: 'Jacky Winter Gardens',
-          checkIn: '2025-07-20',
-          checkOut: '2025-07-23',
-          phone: '555-0987',
-          email: 'lisa.anderson@email.com',
-          source: 'airbnb',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '9',
-          firstName: 'Jeremy',
-          lastName: 'Wortsman',
-          property: 'Jacky Winter Gardens',
-          checkIn: '2025-07-01',
-          checkOut: '2025-07-03',
-          phone: '123456789',
-          email: 'jeremy@test.com',
-          source: 'manual',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '10',
-          firstName: 'Amanda',
-          lastName: 'Taylor',
-          property: 'Jacky Winter Waters',
-          checkIn: '2025-08-01',
-          checkOut: '2025-08-04',
-          phone: '555-0147',
-          email: 'amanda.taylor@email.com',
-          source: 'booking.com',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '11',
-          firstName: 'Robert',
-          lastName: 'Martinez',
-          property: 'Jacky Winter Gardens',
-          checkIn: '2025-08-05',
-          checkOut: '2025-08-08',
-          phone: '555-0258',
-          email: 'robert.martinez@email.com',
-          source: 'direct',
-          notes: '',
-          cleaner: '',
-          cleaningDate: '',
-          cleaningTime: ''
-        },
-        {
-          id: '12',
-          firstName: 'Jessica',
-          lastName: 'Garcia',
-          property: 'Jacky Winter Waters',
-          checkIn: '2025-08-10',
-          checkOut: '2025-08-13',
-          phone: '555-0369',
-          email: 'jessica.garcia@email.com',
-          source: 'airbnb',
           notes: '',
           cleaner: '',
           cleaningDate: '',
@@ -220,7 +64,159 @@ function App() {
       zapierEnabled: localStorage.getItem('zapierEnabled') === 'true'
     };
     setIntegrationSettings(savedSettings);
+
+    // Load iCal settings
+    const savedIcalSettings = {
+      gardensAirbnbUrl: localStorage.getItem('gardensAirbnbUrl') || '',
+      gardensRiparideUrl: localStorage.getItem('gardensRiparideUrl') || '',
+      watersAirbnbUrl: localStorage.getItem('watersAirbnbUrl') || '',
+      watersRiparideUrl: localStorage.getItem('watersRiparideUrl') || '',
+      icalEnabled: localStorage.getItem('icalEnabled') === 'true',
+      lastSync: localStorage.getItem('lastSync') || null,
+      autoSyncInterval: localStorage.getItem('autoSyncInterval') || '30'
+    };
+    setIcalSettings(savedIcalSettings);
+
+    // Start auto-sync if enabled
+    if (savedIcalSettings.icalEnabled && (
+      savedIcalSettings.gardensAirbnbUrl || savedIcalSettings.gardensRiparideUrl || 
+      savedIcalSettings.watersAirbnbUrl || savedIcalSettings.watersRiparideUrl
+    )) {
+      syncIcalFeeds();
+      
+      // Set up periodic sync
+      const syncInterval = setInterval(() => {
+        syncIcalFeeds();
+      }, parseInt(savedIcalSettings.autoSyncInterval) * 60 * 1000);
+
+      return () => clearInterval(syncInterval);
+    }
   }, []);
+
+  // iCal Feed Synchronization
+  const parseIcalData = (icalText, property, source) => {
+    const events = [];
+    const lines = icalText.split('\n');
+    let currentEvent = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      if (line === 'BEGIN:VEVENT') {
+        currentEvent = {
+          property: property,
+          source: source, // 'airbnb' or 'riparide'
+          firstName: '',
+          lastName: '',
+          phone: '',
+          email: '',
+          notes: '',
+          cleaner: '',
+          cleaningDate: '',
+          cleaningTime: ''
+        };
+      } else if (line === 'END:VEVENT' && currentEvent) {
+        if (currentEvent.checkIn && currentEvent.checkOut) {
+          currentEvent.id = `ical-${source}-${property.replace(/\s+/g, '')}-${currentEvent.checkIn}-${currentEvent.checkOut}-${currentEvent.summary?.replace(/\s+/g, '') || 'booking'}`;
+          events.push(currentEvent);
+        }
+        currentEvent = null;
+      } else if (currentEvent) {
+        if (line.startsWith('DTSTART')) {
+          const dateMatch = line.match(/(\d{8})/);
+          if (dateMatch) {
+            const dateStr = dateMatch[1];
+            currentEvent.checkIn = `${dateStr.slice(0,4)}-${dateStr.slice(4,6)}-${dateStr.slice(6,8)}`;
+          }
+        } else if (line.startsWith('DTEND')) {
+          const dateMatch = line.match(/(\d{8})/);
+          if (dateMatch) {
+            const dateStr = dateMatch[1];
+            currentEvent.checkOut = `${dateStr.slice(0,4)}-${dateStr.slice(4,6)}-${dateStr.slice(6,8)}`;
+          }
+        } else if (line.startsWith('SUMMARY:')) {
+          const summary = line.replace('SUMMARY:', '');
+          currentEvent.summary = summary;
+          
+          const nameMatch = summary.match(/^([A-Za-z]+)\s+([A-Za-z]+)/);
+          if (nameMatch) {
+            currentEvent.firstName = nameMatch[1];
+            currentEvent.lastName = nameMatch[2];
+          } else {
+            const words = summary.split(' ');
+            currentEvent.firstName = words[0] || 'Guest';
+            currentEvent.lastName = words[1] || '';
+          }
+        } else if (line.startsWith('DESCRIPTION:')) {
+          currentEvent.notes = line.replace('DESCRIPTION:', '').replace(/\\n/g, '\n');
+        }
+      }
+    }
+    
+    return events;
+  };
+
+  const syncIcalFeeds = async (customSettings = null) => {
+    const settingsToUse = customSettings || icalSettings;
+    console.log('Starting iCal sync with settings:', settingsToUse);
+    let newBookings = [];
+    
+    try {
+      // Sync Gardens Airbnb
+      if (settingsToUse.gardensAirbnbUrl) {
+        console.log('Fetching Gardens Airbnb iCal...');
+        const response = await fetch(settingsToUse.gardensAirbnbUrl);
+        const data = await response.text();
+        const bookings = parseIcalData(data, 'Jacky Winter Gardens', 'airbnb');
+        newBookings = [...newBookings, ...bookings];
+        console.log(`Gardens Airbnb: ${bookings.length} bookings found`);
+      }
+
+      // Sync Gardens Riparide
+      if (settingsToUse.gardensRiparideUrl) {
+        console.log('Fetching Gardens Riparide iCal...');
+        const response = await fetch(settingsToUse.gardensRiparideUrl);
+        const data = await response.text();
+        const bookings = parseIcalData(data, 'Jacky Winter Gardens', 'riparide');
+        newBookings = [...newBookings, ...bookings];
+        console.log(`Gardens Riparide: ${bookings.length} bookings found`);
+      }
+
+      // Sync Waters Airbnb
+      if (settingsToUse.watersAirbnbUrl) {
+        console.log('Fetching Waters Airbnb iCal...');
+        const response = await fetch(settingsToUse.watersAirbnbUrl);
+        const data = await response.text();
+        const bookings = parseIcalData(data, 'Jacky Winter Waters', 'airbnb');
+        newBookings = [...newBookings, ...bookings];
+        console.log(`Waters Airbnb: ${bookings.length} bookings found`);
+      }
+
+      // Sync Waters Riparide
+      if (settingsToUse.watersRiparideUrl) {
+        console.log('Fetching Waters Riparide iCal...');
+        const response = await fetch(settingsToUse.watersRiparideUrl);
+        const data = await response.text();
+        const bookings = parseIcalData(data, 'Jacky Winter Waters', 'riparide');
+        newBookings = [...newBookings, ...bookings];
+        console.log(`Waters Riparide: ${bookings.length} bookings found`);
+      }
+
+      const existingManualBookings = bookings.filter(booking => booking.source === 'manual');
+      const mergedBookings = [...existingManualBookings, ...newBookings];
+      
+      setBookings(mergedBookings);
+      localStorage.setItem('jackyWinterBookings', JSON.stringify(mergedBookings));
+      localStorage.setItem('lastSync', new Date().toISOString());
+      
+      console.log(`iCal sync complete: ${newBookings.length} total bookings imported`);
+      return newBookings.length;
+      
+    } catch (error) {
+      console.error('iCal sync failed:', error);
+      throw error;
+    }
+  };
 
   const getCurrentMonth = () => {
     return selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -398,14 +394,12 @@ function App() {
     }
   };
 
-  // Webhook endpoint to receive and process email data from Zapier
   const handleWebhookData = (webhookData) => {
     console.log('Received webhook data:', webhookData);
     
     if (webhookData.action === 'email_booking_update') {
       const { emailSource, emailSubject, emailBody, extractedData } = webhookData;
       
-      // Process based on email source
       if (emailSource === 'riparide') {
         handleRiparideBooking(extractedData, emailBody);
       } else if (emailSource === 'airbnb') {
@@ -414,11 +408,9 @@ function App() {
     }
   };
 
-  // Handle Riparide booking updates
   const handleRiparideBooking = (extractedData, emailBody) => {
     console.log('Processing Riparide booking:', extractedData);
     
-    // Find incomplete booking by checking recent bookings with source 'riparide' and missing phone
     const incompleteRiparide = bookings.find(booking => 
       booking.source === 'riparide' && 
       (!booking.phone || booking.phone === '') &&
@@ -435,18 +427,15 @@ function App() {
       updateBooking(updatedBooking);
       console.log('Updated Riparide booking with phone:', extractedData.phone);
       
-      // Send confirmation SMS if phone was added
       if (extractedData.phone) {
         sendBookingConfirmation(updatedBooking);
       }
     }
   };
 
-  // Handle Airbnb booking updates  
   const handleAirbnbBooking = (extractedData, emailBody) => {
     console.log('Processing Airbnb booking:', extractedData);
     
-    // Find incomplete booking by matching name and check-in date
     const incompleteAirbnb = bookings.find(booking => 
       booking.source === 'airbnb' && 
       booking.firstName === extractedData.firstName &&
@@ -464,16 +453,13 @@ function App() {
       updateBooking(updatedBooking);
       console.log('Updated Airbnb booking:', updatedBooking);
       
-      // Send confirmation if we got contact info
       if (updatedBooking.phone && updatedBooking.firstName) {
         sendBookingConfirmation(updatedBooking);
       }
     }
   };
 
-  // Simulate webhook endpoint (in production, this would be a real server endpoint)
   const simulateWebhookReceiver = () => {
-    // This simulates receiving webhook data from Zapier
     window.processBookingWebhook = handleWebhookData;
     console.log('Webhook receiver ready at window.processBookingWebhook()');
   };
@@ -792,13 +778,36 @@ function App() {
 
   const IntegrationsModal = ({ onClose }) => {
     const [settings, setSettings] = useState(integrationSettings);
+    const [icalConfig, setIcalConfig] = useState(icalSettings);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncStatus, setSyncStatus] = useState('');
 
     const handleSave = () => {
       setIntegrationSettings(settings);
+      setIcalSettings(icalConfig);
+      
       Object.keys(settings).forEach(key => {
         localStorage.setItem(key, settings[key].toString());
       });
-      onClose();
+      
+      Object.keys(icalConfig).forEach(key => {
+        localStorage.setItem(key, icalConfig[key].toString());
+      });
+      
+      // Update the main state immediately
+      const updatedIcalSettings = {
+        gardensAirbnbUrl: icalConfig.gardensAirbnbUrl,
+        gardensRiparideUrl: icalConfig.gardensRiparideUrl,
+        watersAirbnbUrl: icalConfig.watersAirbnbUrl,
+        watersRiparideUrl: icalConfig.watersRiparideUrl,
+        icalEnabled: icalConfig.icalEnabled,
+        lastSync: icalConfig.lastSync,
+        autoSyncInterval: icalConfig.autoSyncInterval
+      };
+      setIcalSettings(updatedIcalSettings);
+      
+      setSyncStatus('Settings saved successfully!');
+      setTimeout(() => setSyncStatus(''), 3000);
     };
 
     const testZapier = async () => {
@@ -832,7 +841,6 @@ function App() {
     };
 
     const testWebhookReceiver = () => {
-      // Test the webhook with sample Riparide data
       const testRiparideData = {
         action: 'email_booking_update',
         emailSource: 'riparide',
@@ -849,9 +857,54 @@ function App() {
       alert('Test webhook sent! Check console for details and check if Mae Mactier\'s booking was updated with phone number.');
     };
 
+    const testIcalSync = async () => {
+      if (!icalConfig.gardensAirbnbUrl && !icalConfig.gardensRiparideUrl && 
+          !icalConfig.watersAirbnbUrl && !icalConfig.watersRiparideUrl) {
+        setSyncStatus('❌ Please enter at least one iCal URL first');
+        setTimeout(() => setSyncStatus(''), 3000);
+        return;
+      }
+      
+      setIsSyncing(true);
+      setSyncStatus('🔄 Starting iCal sync...');
+      console.log('Manual sync started with config:', icalConfig);
+      
+      try {
+        let feedCount = 0;
+        
+        // Count active feeds
+        if (icalConfig.gardensAirbnbUrl) feedCount++;
+        if (icalConfig.gardensRiparideUrl) feedCount++;
+        if (icalConfig.watersAirbnbUrl) feedCount++;
+        if (icalConfig.watersRiparideUrl) feedCount++;
+        
+        setSyncStatus(`📡 Fetching ${feedCount} calendar feeds...`);
+        
+        // Pass the current config directly to sync function
+        const bookingCount = await syncIcalFeeds(icalConfig);
+        
+        setSyncStatus(`✅ Sync completed! Imported ${bookingCount} bookings from ${feedCount} feeds.`);
+        
+        // Update last sync time in the config
+        const updatedConfig = { 
+          ...icalConfig, 
+          lastSync: new Date().toISOString() 
+        };
+        setIcalConfig(updatedConfig);
+        localStorage.setItem('lastSync', new Date().toISOString());
+        
+      } catch (error) {
+        setSyncStatus(`❌ Sync failed: ${error.message}`);
+        console.error('iCal sync error:', error);
+      } finally {
+        setIsSyncing(false);
+        setTimeout(() => setSyncStatus(''), 8000);
+      }
+    };
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 9999 }}>
-        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+        <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-semibold">Integration Settings</h3>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -860,6 +913,123 @@ function App() {
           </div>
 
           <div className="space-y-6">
+            {/* iCal Sync Section */}
+            <div className="bg-indigo-50 p-4 rounded-lg border">
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar className="text-indigo-600" size={20} />
+                <h4 className="font-semibold text-indigo-800">iCal Feed Sync</h4>
+                <label className="ml-auto flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={icalConfig.icalEnabled}
+                    onChange={(e) => setIcalConfig({...icalConfig, icalEnabled: e.target.checked})}
+                    className="mr-2"
+                  />
+                  Enabled
+                </label>
+              </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Gardens - Airbnb iCal URL</label>
+                    <input
+                      type="url"
+                      value={icalConfig.gardensAirbnbUrl}
+                      onChange={(e) => setIcalConfig({...icalConfig, gardensAirbnbUrl: e.target.value})}
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="https://calendar.airbnb.com/calendar/ical/..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Gardens - Riparide iCal URL</label>
+                    <input
+                      type="url"
+                      value={icalConfig.gardensRiparideUrl}
+                      onChange={(e) => setIcalConfig({...icalConfig, gardensRiparideUrl: e.target.value})}
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="https://riparide.com/calendar/ical/..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Waters - Airbnb iCal URL</label>
+                    <input
+                      type="url"
+                      value={icalConfig.watersAirbnbUrl}
+                      onChange={(e) => setIcalConfig({...icalConfig, watersAirbnbUrl: e.target.value})}
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="https://calendar.airbnb.com/calendar/ical/..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Waters - Riparide iCal URL</label>
+                    <input
+                      type="url"
+                      value={icalConfig.watersRiparideUrl}
+                      onChange={(e) => setIcalConfig({...icalConfig, watersRiparideUrl: e.target.value})}
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="https://riparide.com/calendar/ical/..."
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Auto-sync Interval (minutes)</label>
+                    <select
+                      value={icalConfig.autoSyncInterval}
+                      onChange={(e) => setIcalConfig({...icalConfig, autoSyncInterval: e.target.value})}
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                    >
+                      <option value="15">15 minutes</option>
+                      <option value="30">30 minutes</option>
+                      <option value="60">1 hour</option>
+                      <option value="180">3 hours</option>
+                      <option value="360">6 hours</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Last Sync</label>
+                    <div className="text-sm text-gray-500 p-2 bg-gray-100 rounded">
+                      {icalConfig.lastSync ? new Date(icalConfig.lastSync).toLocaleString() : 'Never'}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <button
+                    onClick={testIcalSync}
+                    disabled={isSyncing}
+                    className={`px-4 py-2 rounded flex items-center gap-2 ${
+                      isSyncing 
+                        ? 'bg-gray-400 text-white cursor-not-allowed' 
+                        : 'bg-indigo-500 text-white hover:bg-indigo-600'
+                    }`}
+                  >
+                    {isSyncing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Syncing...
+                      </>
+                    ) : (
+                      'Sync Now'
+                    )}
+                  </button>
+                  <div className="text-xs text-indigo-600 flex items-center">
+                    💡 Get iCal URLs from Airbnb, Booking.com settings
+                  </div>
+                </div>
+                
+                {syncStatus && (
+                  <div className={`p-3 rounded text-sm ${
+                    syncStatus.includes('✅') ? 'bg-green-100 text-green-800' :
+                    syncStatus.includes('❌') ? 'bg-red-100 text-red-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {syncStatus}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Zapier Section */}
             <div className="bg-orange-50 p-4 rounded-lg border">
               <div className="flex items-center gap-2 mb-4">
                 <Zap className="text-orange-600" size={20} />
@@ -885,18 +1055,20 @@ function App() {
                     placeholder="https://hooks.zapier.com/hooks/catch/..."
                   />
                 </div>
-                <button
-                  onClick={testZapier}
-                  className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 mr-2"
-                >
-                  Test Zapier Connection
-                </button>
-                <button
-                  onClick={testWebhookReceiver}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  Test Email Webhook
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={testZapier}
+                    className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+                  >
+                    Test Zapier Connection
+                  </button>
+                  <button
+                    onClick={testWebhookReceiver}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                  >
+                    Test Email Webhook
+                  </button>
+                </div>
                 <div className="mt-2 p-2 bg-orange-100 rounded text-xs">
                   <strong>Email Webhook URL:</strong> window.processBookingWebhook()
                   <br />
@@ -905,6 +1077,7 @@ function App() {
               </div>
             </div>
 
+            {/* Twilio Section */}
             <div className="bg-blue-50 p-4 rounded-lg border">
               <div className="flex items-center gap-2 mb-4">
                 <Send className="text-blue-600" size={20} />
@@ -959,16 +1132,7 @@ function App() {
               </button>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h5 className="font-medium mb-2">Integration Info</h5>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Zapier webhooks trigger on booking create/update/delete</li>
-                <li>• SMS notifications sent for booking confirmations</li>
-                <li>• Manual SMS reminders available in booking details</li>
-                <li>• All integrations respect guest privacy settings</li>
-              </ul>
-            </div>
-
+            {/* Email Automation Setup */}
             <div className="bg-green-50 p-4 rounded-lg border">
               <h5 className="font-medium text-green-800 mb-3">📧 Email Automation Setup</h5>
               <div className="text-sm text-green-700 space-y-2">
@@ -1003,6 +1167,17 @@ function App() {
                 </div>
               </div>
             </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h5 className="font-medium mb-2">Integration Info</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• iCal feeds automatically import all bookings from platforms</li>
+                <li>• Zapier webhooks trigger on booking create/update/delete</li>
+                <li>• SMS notifications sent for booking confirmations</li>
+                <li>• Manual SMS reminders available in booking details</li>
+                <li>• All integrations respect guest privacy settings</li>
+              </ul>
+            </div>
           </div>
 
           <div className="flex gap-2 mt-6">
@@ -1016,9 +1191,15 @@ function App() {
               onClick={onClose}
               className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
             >
-              Cancel
+              {syncStatus ? 'Close' : 'Cancel'}
             </button>
           </div>
+          
+          {syncStatus && (
+            <div className="mt-3 text-center text-sm text-gray-600">
+              💡 Tip: Save settings first, then test sync for best results
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1315,7 +1496,6 @@ function App() {
           </div>
         </div>
         
-        {/* Settings gear icon in bottom right corner */}
         <button
           onClick={() => setShowIntegrations(true)}
           className="absolute bottom-3 right-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
